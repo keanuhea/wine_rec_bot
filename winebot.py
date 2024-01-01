@@ -98,6 +98,17 @@ wine2vec.train(sentences, total_examples=wine2vec.corpus_count, epochs=wine2vec.
 
 print(wine2vec.wv.most_similar('full'))
 
+def nearest_similarity_cosmul(start1, end1, end2):
+    similarities = wine2vec.wv.most_similar_cosmul(
+        positive=[end2, start1],
+        negative=[end1]
+    )
+    start2 = similarities[0][0]
+    print("{start1} is related to {end1}, as {start2} is related to {end2}".format(**locals()))
+    return start2
+
+print(nearest_similarity_cosmul('oak', 'vanilla', 'cherry'))
+
 
 """
 tokenized_corpus = [review.lower().split() for review in description_test]

@@ -13,17 +13,15 @@ recommend a wine from a food pairing and vice versa.
 *
 ***************************************************************************************/"""
 
-from collections import Counter, OrderedDict
+from collections import Counter
 import numpy as np
 import nltk
 import re
+import sklearn.manifold
 import multiprocessing
 import pandas as pd
 import gensim.models.word2vec as w2v
-import csv
-import json
 
-from gensim.models import Word2Vec
 
 
 #read in the file
@@ -40,10 +38,68 @@ wine_title = data['title']
 description_test = descriptions[0:5]
 wine_title_test = wine_title[0:5]
 
-print(description_test)
-print(wine_title_test)
+#varietal_counts = labels.value_counts()
+#print(varietal_counts[0:50])
+
+#concatenating all of description data into one big string
+corpus_raw = ""
+for description in descriptions:
+    corpus_raw += description
+    
+tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+
+raw_sentences = tokenizer.tokenize(corpus_raw)
+
+def sentence_to_wordlist(raw):
+    clean = re.sub("[^a-zA-Z]"," ", raw)
+    words = clean.split()
+    return words
+
+sentences = []
+for raw_sentence in raw_sentences:
+    if len(raw_sentence) > 0:
+        sentences.append(sentence_to_wordlist(raw_sentence))
+
+#print(raw_sentences[1])
+#print(sentence_to_wordlist(raw_sentences[1]))
+
+#IMPORTANT: THIS WILL SPLIT WORDS WITH AN APOSTROPHE 
+#SO ISN'T BECOMES "ISN" AND "T"
+
+token_count = sum([len(sentence) for sentence in sentences])
+print('The wine corpus contains {0:,} tokens'.format(token_count))
+
+#can look into playing around with the min-word and context-size 
+num_features = 300
+min_word_count = 10
+num_workers = multiprocessing.cpu_count()
+context_size = 10
+downsampling = 1e-3
+seed=1993
+
+wine2vec = w2v.Word2Vec(
+    sg=1,
+    seed=seed,
+    workers=num_workers,
+    vector_size=num_features,
+    min_count=min_word_count,
+    window=context_size,
+    sample=downsampling
+)
+
+wine2vec.build_vocab(sentences)
+
+print('Word2Vec vocabulary length:', len(wine2vec.wv))
+
+print(wine2vec.corpus_count)
+
+wine2vec.train(sentences, total_examples=wine2vec.corpus_count, epochs=wine2vec.epochs)
 
 
+print(wine2vec.wv.most_similar('full'))
+
+
+"""
 tokenized_corpus = [review.lower().split() for review in description_test]
 
 model = Word2Vec(sentences=tokenized_corpus, vector_size=50, window=2, sg=1, min_count=1)
@@ -64,17 +120,17 @@ else:
 
 
 	# Calculate cosine similarity between user's taste and wine titles
-	similarities = [np.dot(user_embedding, model.wv[taste.lower()]) for taste in description_test]
+similarities = [np.dot(user_embedding, model.wv[taste.lower()]) for taste in description_test]
     # Check if all similarities are NaN (no valid words found in the vocabulary)
-    if all(np.isnan(similarity) for similarity in similarities):
-        print("No valid words found in the vocabulary. Please provide different taste preferences.")
-    else:
-        recommended_wine_idx = np.nanargmax(similarities)
+if all(np.isnan(similarity) for similarity in similarities):
+    print("No valid words found in the vocabulary. Please provide different taste preferences.")
+else:
+    recommended_wine_idx = np.nanargmax(similarities)
 
 
 		# Output wine recommendation
-		recommended_wine = wine_title_test[recommended_wine_idx]
-		print(f"We recommend trying: {recommended_wine}")
+recommended_wine = wine_title_test[recommended_wine_idx]
+print(f"We recommend trying: {recommended_wine}")
 
 
 
@@ -94,7 +150,7 @@ def taste_description(taste):
 	print("this is the description you want to use", taste)
 
 
-
+"""
 
 
 """

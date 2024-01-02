@@ -11,16 +11,34 @@ recommend a wine from a food pairing and vice versa.
 *    Date: 2017
 *    Availability: https://github.com/zackthoutt/wine-deep-learning/blob/master/Wine2Vec.ipynb
 *
+
+Here are some resources for the gensim library: 
+https://github.com/piskvorky/gensim/wiki/Migrating-from-Gensim-3.x-to-4
+
+
+
+
 ***************************************************************************************/"""
 
 from collections import Counter
 import numpy as np
+import string
 import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.stem import SnowballStemmer
+#nltk.download('punkt')
+#nltk.download('stopwords')
 import re
 import sklearn.manifold
 import multiprocessing
 import pandas as pd
 import gensim.models.word2vec as w2v
+from gensim.models.phrases import Phrases, Phraser
+from gensim.models import Word2Vec
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import PCA
+import snowballstemmer 
 
 
 
@@ -30,35 +48,80 @@ data = pd.read_json(r'/Users/anuheaparker/Desktop/wine_bot/wine_rec/wine_rec_bot
     'price': np.float32,
 })
 
-
 labels = data['variety']
 descriptions = data['description']
 wine_title = data['title']
 
-description_test = descriptions[0:5]
-wine_title_test = wine_title[0:5]
+description_test = descriptions[1:3]
+wine_title_test = wine_title[1:3]
+
+#print("this is description_test: ", description_test)
 
 #varietal_counts = labels.value_counts()
 #print(varietal_counts[0:50])
 
+#FIRST STEP:
+#Tokenize the data 
+
 #concatenating all of description data into one big string
 corpus_raw = ""
-for description in descriptions:
+for description in description_test:
     corpus_raw += description
     
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
 raw_sentences = tokenizer.tokenize(corpus_raw)
 
+
+#SECOND STEP: 
+#Clean the data. Remove punctuation, stopwords, and non-letters.
+
+stop_words = set(stopwords.words('english'))
+stemmer = snowballstemmer.stemmer('english')
+punc_table = str.maketrans({key: None for key in string.punctuation})  
+
+
+
 def sentence_to_wordlist(raw):
-    clean = re.sub("[^a-zA-Z]"," ", raw)
-    words = clean.split()
-    return words
+    try:
+        word_list = word_tokenize(raw)
+        norm_sentence = []
+        for w in word_list:
+            try:
+                w = str(w)
+                lower_case_word = w.lower()
+                no_punc = re.sub("[^a-zA-Z]","", lower_case_word)
+                stemmed_word = stemmer.stemWords(no_punc.split())
+                clean_word = ' '.join(stemmed_word)
+                if len(clean_word) > 1 and clean_word not in stop_words:
+                    norm_sentence.append(clean_word)     
+            except: 
+                continue
+        return norm_sentence
+    except:
+        return ''
+
 
 sentences = []
 for raw_sentence in raw_sentences:
-    if len(raw_sentence) > 0:
-        sentences.append(sentence_to_wordlist(raw_sentence))
+    sentences.append(sentence_to_wordlist(raw_sentence))
+
+print("these are the finished sentences", sentences)
+
+
+
+
+"""
+
+
+
+
+
+
+
+
+
+
 
 #print(raw_sentences[1])
 #print(sentence_to_wordlist(raw_sentences[1]))
@@ -108,6 +171,18 @@ def nearest_similarity_cosmul(start1, end1, end2):
     return start2
 
 print(nearest_similarity_cosmul('oak', 'vanilla', 'cherry'))
+
+
+"""
+
+
+
+
+
+
+
+
+
 
 
 """

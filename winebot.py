@@ -39,7 +39,7 @@ from gensim.models import Word2Vec
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import PCA
 import snowballstemmer 
-
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 #read in the file
@@ -52,10 +52,8 @@ labels = data['variety']
 descriptions = data['description']
 wine_title = data['title']
 
-description_test = descriptions[1:3]
-wine_title_test = wine_title[1:3]
-
-#print("this is description_test: ", description_test)
+description_test = descriptions[1:11]
+wine_title_test = wine_title[1:11]
 
 #varietal_counts = labels.value_counts()
 #print(varietal_counts[0:50])
@@ -65,12 +63,14 @@ wine_title_test = wine_title[1:3]
 
 #concatenating all of description data into one big string
 corpus_raw = ""
-for description in description_test:
+for description in descriptions:
+    #print("this is the description", description)
     corpus_raw += description
     
-tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+#tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
-raw_sentences = tokenizer.tokenize(corpus_raw)
+#raw_sentences = tokenizer.tokenize(corpus_raw)
+raw_sentences = description_test
 
 
 #SECOND STEP: 
@@ -106,28 +106,42 @@ sentences = []
 for raw_sentence in raw_sentences:
     sentences.append(sentence_to_wordlist(raw_sentence))
 
-print("these are the finished sentences", sentences)
+
+
+# Tokenize user input (replace with your actual user input processing logic)
+user_input = "ugly sunset dog"
+
+user_input_tokenized = sentence_to_wordlist(user_input)
+
+# Tokenize wine reviews and user input
+all_reviews = sentences + [user_input_tokenized]
+
+# Convert tokenized reviews to text strings
+reviews_as_text = [" ".join(review) for review in all_reviews]
+
+# Vectorize using TF-IDF
+vectorizer = TfidfVectorizer()
+wine_vectors = vectorizer.fit_transform(reviews_as_text)
+
+# Calculate cosine similarity
+cosine_similarities = cosine_similarity(wine_vectors[:-1], wine_vectors[-1])
+
+# Find the index of the most similar wine review
+most_similar_index = cosine_similarities.argmax()
+
+
+
+# Output wine recommendation
+recommended_wine = wine_title[most_similar_index+1]
+print(f"We recommend trying: {recommended_wine}")
+
+
 
 
 
 
 """
 
-
-
-
-
-
-
-
-
-
-
-#print(raw_sentences[1])
-#print(sentence_to_wordlist(raw_sentences[1]))
-
-#IMPORTANT: THIS WILL SPLIT WORDS WITH AN APOSTROPHE 
-#SO ISN'T BECOMES "ISN" AND "T"
 
 token_count = sum([len(sentence) for sentence in sentences])
 print('The wine corpus contains {0:,} tokens'.format(token_count))

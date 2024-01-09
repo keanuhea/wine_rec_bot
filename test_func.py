@@ -7,6 +7,52 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
+
+
+
+
+
+
+#TEST USER INPUT
+
+check = False
+taste = ""
+food = ""
+
+if __name__ == "__main__":
+    search_style = input("How would you like to search for your perfect wine? Please type either 'food pairing' or 'taste description' to start your search process. ").strip()
+    
+    while check == False:
+    
+        if search_style.lower() == "food pairing":
+            print("Great!")
+            food = input("Please enter the name of the dish/ingredient you are going to eat: ")
+            check = True
+        elif search_style.lower() == "taste description":
+            print("Great!")
+            taste = input("Please enter 1-3 taste descriptors: ")
+            check = True
+        else:
+            print("Sorry, I don't recognize your input. Please try again. ")
+            check = False
+            search_style = input("How would you like to search for your perfect wine? Please type either 'food pairing' or 'taste description' to start your search process. ").strip()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 """
 
 
@@ -24,6 +70,10 @@ print(wordsFiltered)
 
 """
 
+
+"""
+
+#TEST COSINE STUFF 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -66,3 +116,5 @@ most_similar_index = cosine_similarities.argmax()
 # Output wine recommendation
 recommended_wine = wine_titles[most_similar_index]
 print(f"We recommend trying: {recommended_wine}")
+
+"""

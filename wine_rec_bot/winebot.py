@@ -43,7 +43,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 #read in the file
-data = pd.read_json(r'/Users/anuheaparker/Desktop/wine_bot/wine_rec/wine_rec_bot/winemag-data-130k-v2.json', dtype={
+data = pd.read_json(r'/Users/anuheaparker/Desktop/coding projects/personal_projects/projects/wine_rec_bot/winemag-data-130k-v2.json', dtype={
     'points': np.int32,
     'price': np.float32,
 })
